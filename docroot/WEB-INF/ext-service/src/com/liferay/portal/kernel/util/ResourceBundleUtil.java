@@ -13,8 +13,8 @@ public class ResourceBundleUtil {
     public static String getString(
             ResourceBundle resourceBundle, Locale locale, String key,
             Object[] arguments) {
-
-        String value = getString(resourceBundle, key);
+    	
+        String value = getString(resourceBundle, key);        
 
         if (value == null) {
             return null;
@@ -26,7 +26,6 @@ public class ResourceBundleUtil {
 
         if ((arguments != null) && (arguments.length > 0)) {
             MessageFormat messageFormat = new MessageFormat(value, locale);
-
             value = messageFormat.format(arguments);
         }
 
@@ -34,8 +33,8 @@ public class ResourceBundleUtil {
     }
 
     public static String getString(ResourceBundle resourceBundle, String key) {
-        ResourceBundleThreadLocal.setReplace(true);
-
+    	
+        ResourceBundleThreadLocal.setReplace(true);              
         String value = null;
         String defaultVal = value;
         value = MessageSourceUtil.getMessage(resourceBundle, key);
@@ -54,6 +53,9 @@ public class ResourceBundleUtil {
     }
 
     public static String getString(Locale locale, String key) {
+    	if(StringUtils.isBlank(key)) {
+    		return null;
+    	}    	
         String value = MessageSourceUtil.getMessage(locale, key);
         if (NULL_VALUE.equals(value)) {
             value = null;
