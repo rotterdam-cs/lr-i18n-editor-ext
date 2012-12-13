@@ -145,9 +145,7 @@ public class PortletConfigImpl implements LiferayPortletConfig {
             if (resourceBundle == null) {
                 if (!_portletApp.isWARFile() &&
                         resourceBundleClassName.equals(
-                                StrutsResourceBundle.class.getName())) {
-
-                    System.out.println("Obtaining StrutsResourceBundle instance.");
+                                StrutsResourceBundle.class.getName())) {                    
 
                     resourceBundle = new StrutsResourceBundle(
                             _portletName, locale);
