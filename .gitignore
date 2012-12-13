@@ -4,3 +4,5 @@ target
 /.classpath
 /bin
 docroot/WEB-INF/classes/*
+docroot/WEB-INF/ext-impl/classes/*
+docroot/WEB-INF/ext-service/classes/*
