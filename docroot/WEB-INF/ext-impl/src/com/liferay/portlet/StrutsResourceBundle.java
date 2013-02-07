@@ -55,26 +55,24 @@ public class StrutsResourceBundle extends ResourceBundle {
         if (StringUtils.isEmpty(key)) {
         	return key;        	
         }
-        String value = StringUtils.EMPTY;        
+                
         if ((key.equals(JavaConstants.JAVAX_PORTLET_DESCRIPTION) ||
                 key.equals(JavaConstants.JAVAX_PORTLET_KEYWORDS) ||
                 key.equals(JavaConstants.JAVAX_PORTLET_LONG_TITLE) ||
                 key.equals(JavaConstants.JAVAX_PORTLET_SHORT_TITLE) ||
                 key.equals(JavaConstants.JAVAX_PORTLET_TITLE))) {
 
-            key = key.concat(StringPool.PERIOD).concat(_portletName);            
-            try {
-                value = ResourceBundleUtil.getString(_locale, key);
-            } catch (Exception ignored) {}            
+            key = key.concat(StringPool.PERIOD).concat(_portletName);                       
         }
         
+        String value = StringUtils.EMPTY;
         try {
             value = ResourceBundleUtil.getString(_locale, key);
         } catch (Exception ignored) {}
         // if the key is not stored, get it 
         // from the Language.properties file
         if (StringUtils.isBlank(value)) try {
-        	LanguageUtil.get(_locale, key);
+        	value = LanguageUtil.get(_locale, key);
         } catch (Exception ignored) {}      
         
         if ((value == null) && ResourceBundleThreadLocal.isReplace()) {
