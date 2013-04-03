@@ -11,11 +11,11 @@
         <short-description>Language display customization on the fly.</short-description>
         <long-description>The I18N Editor works by storing all the Liferay core and portlets language.properties keys and values in the database and then the portal reads those properties from the database directly. So a user can easily change existing language entries in different languages.</long-description>        
         <page-url>www.rotterdam-cs.com</page-url>
-        <author>Rotterdam CS</author>
+        <author>Florencia Gadea - Rotterdam CS</author>
         <licenses>
                 <license osi-approved="true">LGPL</license>
         </licenses>               
         <liferay-versions>
-                <liferay-version>6.1.1</liferay-version>
+                <liferay-version>6.1.1+</liferay-version>
         </liferay-versions>
 </plugin-package>
