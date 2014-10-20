@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portlet;
 import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.portlet.PortletBagPool;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
@@ -25,10 +26,20 @@ import com.liferay.portal.model.PortletApp;
 import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.model.PublicRenderParameter;
 
-import javax.portlet.PortletContext;
-import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.portlet.PortletContext;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author Brian Wing Shun Chan
@@ -37,170 +48,191 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PortletConfigImpl implements LiferayPortletConfig {
 
-    public PortletConfigImpl(Portlet portlet, PortletContext portletContext) {
-        _portletApp = portlet.getPortletApp();
-        _portlet = portlet;
-        _portletName = portlet.getRootPortletId();
+	public PortletConfigImpl(Portlet portlet, PortletContext portletContext) {
+		_portletApp = portlet.getPortletApp();
+		_portlet = portlet;
+		_portletName = portlet.getRootPortletId();
 
-        int pos = _portletName.indexOf(PortletConstants.WAR_SEPARATOR);
+		int pos = _portletName.indexOf(PortletConstants.WAR_SEPARATOR);
 
-        if (pos != -1) {
-            _portletName = _portletName.substring(0, pos);
-        }
+		if (pos != -1) {
+			_portletName = _portletName.substring(0, pos);
+		}
 
-        _portletContext = portletContext;
-        _resourceBundles = new ConcurrentHashMap<String, ResourceBundle>();
-    }
+		_portletContext = portletContext;
+		_resourceBundles = new ConcurrentHashMap<String, ResourceBundle>();
 
-    public Map<String, String[]> getContainerRuntimeOptions() {
-        return _portletApp.getContainerRuntimeOptions();
-    }
+		_copyRequestParameters = GetterUtil.getBoolean(
+			getInitParameter("copy-request-parameters"));
+	}
 
-    public String getDefaultNamespace() {
-        return _portletApp.getDefaultNamespace();
-    }
+	@Override
+	public Map<String, String[]> getContainerRuntimeOptions() {
+		return _portletApp.getContainerRuntimeOptions();
+	}
 
-    public String getInitParameter(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException();
-        }
+	@Override
+	public String getDefaultNamespace() {
+		return _portletApp.getDefaultNamespace();
+	}
 
-        return _portlet.getInitParams().get(name);
-    }
+	@Override
+	public String getInitParameter(String name) {
+		if (name == null) {
+			throw new IllegalArgumentException();
+		}
 
-    public Enumeration<String> getInitParameterNames() {
-        return Collections.enumeration(_portlet.getInitParams().keySet());
-    }
+		return _portlet.getInitParams().get(name);
+	}
 
-    public Portlet getPortlet() {
-        return _portlet;
-    }
+	@Override
+	public Enumeration<String> getInitParameterNames() {
+		return Collections.enumeration(_portlet.getInitParams().keySet());
+	}
 
-    public PortletContext getPortletContext() {
-        return _portletContext;
-    }
+	@Override
+	public Portlet getPortlet() {
+		return _portlet;
+	}
 
-    public String getPortletId() {
-        return _portlet.getPortletId();
-    }
+	@Override
+	public PortletContext getPortletContext() {
+		return _portletContext;
+	}
 
-    public String getPortletName() {
-        return _portletName;
-    }
+	@Override
+	public String getPortletId() {
+		return _portlet.getPortletId();
+	}
 
-    public Enumeration<QName> getProcessingEventQNames() {
-        return Collections.enumeration(
-                toJavaxQNames(_portlet.getProcessingEvents()));
-    }
+	@Override
+	public String getPortletName() {
+		return _portletName;
+	}
 
-    public Enumeration<String> getPublicRenderParameterNames() {
-        List<String> publicRenderParameterNames = new ArrayList<String>();
+	@Override
+	public Enumeration<QName> getProcessingEventQNames() {
+		return Collections.enumeration(
+			toJavaxQNames(_portlet.getProcessingEvents()));
+	}
 
-        for (PublicRenderParameter publicRenderParameter :
-                _portlet.getPublicRenderParameters()) {
+	@Override
+	public Enumeration<String> getPublicRenderParameterNames() {
+		List<String> publicRenderParameterNames = new ArrayList<String>();
 
-            publicRenderParameterNames.add(
-                    publicRenderParameter.getIdentifier());
-        }
+		for (PublicRenderParameter publicRenderParameter :
+				_portlet.getPublicRenderParameters()) {
 
-        return Collections.enumeration(publicRenderParameterNames);
-    }
+			publicRenderParameterNames.add(
+				publicRenderParameter.getIdentifier());
+		}
 
-    public Enumeration<QName> getPublishingEventQNames() {
-        return Collections.enumeration(
-                toJavaxQNames(_portlet.getPublishingEvents()));
-    }
+		return Collections.enumeration(publicRenderParameterNames);
+	}
 
-    public ResourceBundle getResourceBundle(Locale locale) {
-        String resourceBundleClassName = _portlet.getResourceBundle();
+	@Override
+	public Enumeration<QName> getPublishingEventQNames() {
+		return Collections.enumeration(
+			toJavaxQNames(_portlet.getPublishingEvents()));
+	}
 
-        ResourceBundle resourceBundle = null;
+	@Override
+	public ResourceBundle getResourceBundle(Locale locale) {
+		String resourceBundleClassName = _portlet.getResourceBundle();
 
-        if (Validator.isNull(resourceBundleClassName)) {
-            String resourceBundleId = _portlet.getPortletId();
+		ResourceBundle resourceBundle = null;
 
-            resourceBundle = _resourceBundles.get(resourceBundleId);
+		if (Validator.isNull(resourceBundleClassName)) {
+			String resourceBundleId = _portlet.getPortletId();
 
-            if (resourceBundle == null) {
-                resourceBundle = new PortletResourceBundle(
-                        _portlet.getPortletInfo());
+			resourceBundle = _resourceBundles.get(resourceBundleId);
 
-                _resourceBundles.put(resourceBundleId, resourceBundle);
-            }
+			if (resourceBundle == null) {
+				resourceBundle = new PortletResourceBundle(
+					_portlet.getPortletInfo());
 
-            return resourceBundle;
-        }
-        else {
-            StringBundler sb = new StringBundler(4);
+				_resourceBundles.put(resourceBundleId, resourceBundle);
+			}
 
-            sb.append(_portlet.getPortletId());
-            sb.append(locale.getLanguage());
-            sb.append(locale.getCountry());
-            sb.append(locale.getVariant());
+			return resourceBundle;
+		}
 
-            String resourceBundleId = sb.toString();
+		StringBundler sb = new StringBundler(4);
 
-            resourceBundle = _resourceBundles.get(resourceBundleId);
+		sb.append(_portlet.getPortletId());
+		sb.append(locale.getLanguage());
+		sb.append(locale.getCountry());
+		sb.append(locale.getVariant());
 
-            if (resourceBundle == null) {
-                if (!_portletApp.isWARFile() &&
-                        resourceBundleClassName.equals(
-                                StrutsResourceBundle.class.getName())) {                    
+		String resourceBundleId = sb.toString();
 
-                    resourceBundle = new StrutsResourceBundle(
-                            _portletName, locale);
-                }
-                else {
-                    PortletBag portletBag = PortletBagPool.get(
-                            _portlet.getRootPortletId());
+		resourceBundle = _resourceBundles.get(resourceBundleId);
 
-                    resourceBundle = portletBag.getResourceBundle(locale);
-                }
+		if (resourceBundle == null) {
+			if (!_portletApp.isWARFile() &&
+				resourceBundleClassName.equals(
+					StrutsResourceBundle.class.getName())) {
 
-                resourceBundle = new PortletResourceBundle(
-                        resourceBundle, _portlet.getPortletInfo());
+				resourceBundle = new StrutsResourceBundle(_portletName, locale);
+			}
+			else {
+				PortletBag portletBag = PortletBagPool.get(
+					_portlet.getRootPortletId());
 
-                _resourceBundles.put(resourceBundleId, resourceBundle);
-            }
+				resourceBundle = portletBag.getResourceBundle(locale);
+			}
 
-            return resourceBundle;
-        }
-    }
+			resourceBundle = new PortletResourceBundle(
+				resourceBundle, _portlet.getPortletInfo());
 
-    public Enumeration<Locale> getSupportedLocales() {
-        List<Locale> supportedLocales = new ArrayList<Locale>();
+			_resourceBundles.put(resourceBundleId, resourceBundle);
+		}
 
-        for (String languageId : _portlet.getSupportedLocales()) {
-            supportedLocales.add(LocaleUtil.fromLanguageId(languageId));
-        }
+		return resourceBundle;
+	}
 
-        return Collections.enumeration(supportedLocales);
-    }
+	@Override
+	public Enumeration<Locale> getSupportedLocales() {
+		List<Locale> supportedLocales = new ArrayList<Locale>();
 
-    public boolean isWARFile() {
-        return _portletApp.isWARFile();
-    }
+		for (String languageId : _portlet.getSupportedLocales()) {
+			supportedLocales.add(LocaleUtil.fromLanguageId(languageId));
+		}
 
-    protected Set<javax.xml.namespace.QName> toJavaxQNames(
-            Set<com.liferay.portal.kernel.xml.QName> liferayQNames) {
+		return Collections.enumeration(supportedLocales);
+	}
 
-        Set<QName> javaxQNames = new HashSet<QName>(liferayQNames.size());
+	@Override
+	public boolean isCopyRequestParameters() {
+		return _copyRequestParameters;
+	}
 
-        for (com.liferay.portal.kernel.xml.QName liferayQName : liferayQNames) {
-            QName javaxQName = new QName(
-                    liferayQName.getNamespaceURI(), liferayQName.getLocalPart(),
-                    liferayQName.getNamespacePrefix());
+	@Override
+	public boolean isWARFile() {
+		return _portletApp.isWARFile();
+	}
 
-            javaxQNames.add(javaxQName);
-        }
+	protected Set<javax.xml.namespace.QName> toJavaxQNames(
+		Set<com.liferay.portal.kernel.xml.QName> liferayQNames) {
 
-        return javaxQNames;
-    }
+		Set<QName> javaxQNames = new HashSet<QName>(liferayQNames.size());
 
-    private Portlet _portlet;
-    private PortletApp _portletApp;
-    private PortletContext _portletContext;
-    private String _portletName;
-    private Map<String, ResourceBundle> _resourceBundles;
+		for (com.liferay.portal.kernel.xml.QName liferayQName : liferayQNames) {
+			QName javaxQName = new QName(
+				liferayQName.getNamespaceURI(), liferayQName.getLocalPart(),
+				liferayQName.getNamespacePrefix());
+
+			javaxQNames.add(javaxQName);
+		}
+
+		return javaxQNames;
+	}
+
+	private boolean _copyRequestParameters;
+	private Portlet _portlet;
+	private PortletApp _portletApp;
+	private PortletContext _portletContext;
+	private String _portletName;
+	private Map<String, ResourceBundle> _resourceBundles;
 
 }
