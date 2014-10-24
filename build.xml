@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
 
-<project name="resourcePlugin-ext" basedir="." default="deploy">
+<project name="lr-i18n-editor-ext" basedir="." default="deploy">
 	<import file="../build-common-ext.xml" />
 </project>

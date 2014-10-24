@@ -86,7 +86,7 @@ import org.apache.commons.lang.StringUtils;
  * @author Eduardo Lundgren
  * @author Juan Fernández
  */
-public class PortalUtilExt {
+public class PortalUtil {
 
 	/**
 	 * Adds the description for a page. This appends to the existing page

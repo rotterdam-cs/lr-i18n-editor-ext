@@ -1,6 +1,6 @@
 <plugin-package>
         <name>I18N Editor Ext</name>
-        <module-id>rotterdam-cs/lr-i18n-editor-ext/6.1.0/war</module-id>
+        <module-id>rotterdam-cs/lr-i18n-editor-ext/6.2.0/war</module-id>
         <types>
                 <type>ext</type>
         </types>
@@ -16,6 +16,6 @@
                 <license osi-approved="true">LGPL</license>
         </licenses>               
         <liferay-versions>
-                <liferay-version>6.1.0</liferay-version>
+                <liferay-version>6.2.0+</liferay-version>
         </liferay-versions>
 </plugin-package>
